@@ -464,7 +464,7 @@ fn show_sensors(port: u16) {
             .for_each(|x| {
                 if !x.is_empty() && !x.starts_with(' ') && !x.starts_with('(') {
                     if x.contains(":") {
-                        found = true;
+                        found = true; 
                         let v: Vec<&str> = x.split(':').collect();
                         let param = v[0]
                             .replace("/", "_")
@@ -474,7 +474,7 @@ fn show_sensors(port: u16) {
                         let vals: Vec<&str> = v[1].trim().split(' ').collect();
                         let val = vals[0];
                         println!(
-                            "http://{}:{}/{}/{} = {}",
+                            "http://{}:{}/sensors/{}/{} = {}",
                             hostname, port, device, param, val
                         );
                     } else {
