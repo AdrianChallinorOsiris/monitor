@@ -7,19 +7,20 @@
 
 #![feature(proc_macro_hygiene, decl_macro)]
 
-#[macro_use]
+#[macro_use] 
 extern crate rocket;
-#[macro_use]
-extern crate clap;
 
+extern crate clap;
 extern crate chrono;
 extern crate hostname;
 extern crate libc;
 extern crate uname;
 extern crate uptime_lib;
+extern crate systemstat;
+extern crate time;
 
 use clap::{App, Arg};
-use hostname::get_hostname;
+
 use libc::c_char;
 use libc::statvfs;
 use rocket::config::{Config, Environment, Limits, LoggingLevel};
@@ -39,32 +40,32 @@ use uname::uname;
 
 fn main() {
     let cmd_arguments = App::new("monitor")
-        .version(crate_version!())
-        .author(crate_authors!())
+        .version("0.2")
+        .author("Adrian Challinor <adrian.challinor at osiris.co.uk>")
         .about("Remote monitor server, mainly for CONKY")
         .arg(
             Arg::with_name("address")
-                .short("a")
+                .short('a')
                 .long("address")
                 .help("The IP address to bind to")
                 .default_value("0.0.0.0"),
         )
         .arg(
             Arg::with_name("port")
-                .short("p")
+                .short('p')
                 .long("port")
                 .help("The IP port to bind to")
                 .default_value("9000"),
         )
         .arg(
             Arg::with_name("sensors")
-                .short("s")
+                .short('s')
                 .long("sensors")
                 .help("List available sensors and exit"),
         )
         .arg(
             Arg::with_name("workers")
-                .short("w")
+                .short('w')
                 .long("workers")
                 .help("The number of concurrent worker threads")
                 .default_value("5"),
@@ -316,7 +317,8 @@ fn reboot() -> String {
 fn uptime() -> String {
     match uptime_lib::get() {
         Ok(uptime) => {
-            let s: u64 = (uptime.num_milliseconds() as f64 / 1000.0) as u64;
+            
+            let s: u64 = (uptime.as_secs_f64() as f64 ) as u64;
             let m: u64 = s / 60;
             let sd = s - (m * 60);
             let h: u64 = m / 60;
@@ -432,10 +434,7 @@ fn status() -> String {
 /// Get the nost name
 #[get("/")]
 fn name() -> String {
-    match get_hostname() {
-        Some(name) => name,
-        None => panic!("No host name"),
-    }
+    hostname::get().unwrap().to_str().unwrap().to_string()
 }
 
 /// Catch 404 errors
@@ -446,7 +445,7 @@ fn not_found() -> String {
 
 fn show_sensors(port: u16) {
     let mut found = false;
-    let hostname = get_hostname().unwrap();
+    let hostname = name();
     println!("{} : Listing all sensors in conky monitor format", hostname);
     println!("");
 
